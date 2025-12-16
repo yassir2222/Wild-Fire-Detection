@@ -19,6 +19,7 @@ const Dashboard = () => {
                     <nav className="flex items-center gap-1 rounded-full bg-surface-darker p-1 border border-white/5">
                         <Link className="px-5 py-2 rounded-full bg-primary/20 text-primary text-sm font-bold shadow-[0_0_10px_rgba(19,236,91,0.2)] transition-all" to="/dashboard">Dashboard</Link>
                         <Link className="px-5 py-2 rounded-full text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all" to="/fwi">Fire Weather</Link>
+                        <Link className="px-5 py-2 rounded-full text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all" to="/realtime">Live Monitoring</Link>
                         <a className="px-5 py-2 rounded-full text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all" href="#">Sat-View</a>
                         <a className="px-5 py-2 rounded-full text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all" href="#">Logs</a>
                     </nav>

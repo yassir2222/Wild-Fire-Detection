@@ -1,0 +1,53 @@
+{
+  "ok": true,
+  "result": [
+    {
+      "update_id": 129897742,
+      "message": {
+        "message_id": 1,
+        "from": {
+          "id": 1851197762,
+          "is_bot": false,
+          "first_name": "yassir",
+          "language_code": "fr"
+        },
+        "chat": {
+          "id": 1851197762,
+          "first_name": "yassir",
+          "type": "private"
+        },
+        "date": 1765916675,
+        "text": "/start",
+        "entities": [
+          {
+            "offset": 0,
+            "length": 6,
+            "type": "bot_command"
+          }
+        ]
+      }
+    },
+    {
+      "update_id": 129897743,
+      "message": {
+        "message_id": 2,
+        "from": {
+          "id": 1851197762,
+          "is_bot": false,
+          "first_name": "yassir",
+          "language_code": "fr"
+        },
+        "chat": {
+          "id": 1851197762,
+          "first_name": "yassir",
+          "type": "private"
+        },
+        "date": 1765916677,
+        "text": "hy"
+      }
+    }
+  ]
+}
+
+
+https://api.telegram.org/bot8405612634:AAEdmtfdtY8hMKj5XKJG0UM2EVp7IJhsejE/getUpdates

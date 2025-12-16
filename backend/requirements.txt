@@ -6,3 +6,6 @@ starlette
 tensorflow
 numpy
 pillow
+ultralytics
+opencv-python
+python-dotenv

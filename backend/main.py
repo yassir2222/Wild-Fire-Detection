@@ -72,5 +72,18 @@ async def predict(file: UploadFile = File(...)):
     except Exception as e:
         return {"error": str(e)}
 
+
+from fastapi.responses import StreamingResponse
+from yolo_service import yolo_service
+
+# ... (existing code: imports, app setup, model loading)
+
+@app.get("/video_feed")
+def video_feed():
+    return StreamingResponse(yolo_service.generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
+
+# ... (existing code: root, health, predict)
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
