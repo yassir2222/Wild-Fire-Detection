@@ -6,6 +6,8 @@ import DetectionConsole from './pages/DetectionConsole';
 import FireWeatherIndex from './pages/FireWeatherIndex';
 import RealTimeDetection from './pages/RealTimeDetection';
 
+import UploadDetection from './pages/UploadDetection';
+
 function App() {
   return (
     <BrowserRouter>
@@ -14,6 +16,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/detection" element={<DetectionConsole />} />
         <Route path="/realtime" element={<RealTimeDetection />} />
+        <Route path="/upload" element={<UploadDetection />} />
         <Route path="/fwi" element={<FireWeatherIndex />} />
       </Routes>
     </BrowserRouter>

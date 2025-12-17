@@ -82,7 +82,50 @@ from yolo_service import yolo_service
 def video_feed():
     return StreamingResponse(yolo_service.generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
 
-# ... (existing code: root, health, predict)
+
+import shutil
+import os
+from fastapi.responses import FileResponse
+
+@app.post("/detect/image")
+async def detect_image(file: UploadFile = File(...)):
+    if not file.content_type.startswith("image/"):
+        return {"error": "File must be an image"}
+    
+    contents = await file.read()
+    encoded_image, detections = yolo_service.process_image(contents)
+    
+    if encoded_image is None:
+        return {"error": detections.get("error", "Unknown error")}
+        
+    return {
+        "image": encoded_image,
+        "detections": detections,
+        "count": len(detections)
+    }
+
+@app.post("/detect/video")
+async def detect_video(file: UploadFile = File(...)):
+    if not file.content_type.startswith("video/"):
+        return {"error": "File must be a video"}
+        
+    # Save temp input file
+    temp_input = f"temp_{file.filename}"
+    with open(temp_input, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    # Output path
+    output_filename = f"processed_{file.filename}"
+    
+    success, message = yolo_service.process_video(temp_input, output_filename)
+    
+    # Clean up input
+    os.remove(temp_input)
+    
+    if not success:
+        return {"error": message}
+        
+    return FileResponse(output_filename, media_type="video/mp4", filename=output_filename)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

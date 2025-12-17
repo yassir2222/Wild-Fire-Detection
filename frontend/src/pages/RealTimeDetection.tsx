@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, Variants } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 const RealTimeDetection = () => {
