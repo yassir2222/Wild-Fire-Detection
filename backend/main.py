@@ -251,6 +251,71 @@ def get_zone_image(zone_name: str, fire_script: bool = False):
         "metadata": result.get("metadata")
     }
 
+# ============================================================
+# TEST NOTIFICATION ENDPOINTS
+# ============================================================
+
+@app.post("/api/test/telegram")
+def test_telegram_notification():
+    """
+    Send a mock fire alert to Telegram for testing purposes.
+    Uses simulated data to verify notification formatting.
+    """
+    from datetime import datetime
+    
+    # Create mock detection result
+    mock_result = {
+        "zone": "Rif (TEST)",
+        "prediction": "Fire",
+        "confidence": 0.923,
+        "coordinates": (35.1234, -4.5678),
+        "timestamp": datetime.now().isoformat(),
+        "brightness": 356.7,
+        "spread_radius": 5.2,
+        "image_base64": None  # No image for quick test
+    }
+    
+    # Use the monitoring service's telegram method
+    monitoring_service._send_telegram_alert(mock_result)
+    
+    return {
+        "success": True,
+        "message": "Mock Telegram alert sent. Check your Telegram bot.",
+        "mock_data": mock_result
+    }
+
+@app.post("/api/test/email")
+def test_email_mock_alert():
+    """
+    Send a mock fire alert email for testing purposes.
+    """
+    if not email_service.is_available():
+        return {"error": "Email service not configured. Check SMTP settings in .env"}
+    
+    # Create mock detection result
+    mock_result = {
+        "zone": "Middle Atlas (TEST)",
+        "prediction": "Fire",
+        "confidence": 0.876,
+        "coordinates": (33.5000, -5.0000),
+        "image_base64": None
+    }
+    
+    result = email_service.send_alert(
+        zone_name=mock_result["zone"],
+        coordinates=mock_result["coordinates"],
+        confidence=mock_result["confidence"],
+        prediction=mock_result["prediction"],
+        image_base64=mock_result.get("image_base64")
+    )
+    
+    return {
+        "success": result.get("success", False),
+        "message": "Mock email alert sent." if result.get("success") else result.get("error"),
+        "recipients": result.get("recipients"),
+        "mock_data": mock_result
+    }
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 

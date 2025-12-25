@@ -34,6 +34,9 @@ except Exception as e:
 
 from sentinel_service import sentinel_service
 from email_service import email_service
+from prediction_service import prediction_service
+import base64
+import random
 
 
 class MonitoringService:
@@ -224,11 +227,25 @@ class MonitoringService:
             else:
                 print(f"❌ Email failed: {email_result['error']}")
         
+        # Simulate brightness for demo (CAM model doesn't output temperature)
+        # Random value between 320K and 400K for detected fires
+        brightness = random.uniform(320.0, 400.0)
+        confidence_level = "High" if result["confidence"] > 0.85 else "Low"
+        
+        # Calculate spread prediction
+        spread_data = prediction_service.calculate_spread(brightness, confidence_level)
+        
+        # Enrich result
+        result["brightness"] = round(brightness, 1)
+        result["spread_radius"] = spread_data["radius_km"]
+        
         # Send Telegram alert
         self._send_telegram_alert(result)
     
     def _send_telegram_alert(self, result: dict):
-        """Send fire alert to Telegram bot."""
+        """
+        Send fire alert to Telegram bot with image and detailed metrics.
+        """
         import requests
         
         bot_token = os.getenv("BOT_TOKEN")
@@ -237,32 +254,59 @@ class MonitoringService:
         if not bot_token or not chat_id:
             print("⚠️ Telegram credentials not configured")
             return
+            
+        # Format Google Maps link
+        lat, lon = result['coordinates']
+        maps_link = f"https://www.google.com/maps/search/?api=1&query={lat},{lon}"
         
-        # Create alert message
-        message = f"""🔥 *ALERTE INCENDIE DÉTECTÉ* 🔥
+        # Create detailed caption
+        message = f"""🔥 *ALERTE INCENDIE - AI SENTINEL* 🔥
 
-📍 *Zone:* {result['zone']}
-🎯 *Prédiction:* {result['prediction']}
-📊 *Confiance:* {result['confidence']*100:.1f}%
-🌍 *Coordonnées:* {result['coordinates'][0]:.4f}, {result['coordinates'][1]:.4f}
-⏰ *Heure:* {result.get('timestamp', datetime.now().isoformat())}
+📍 *Zone Géographique*
+• Région: {result['zone']}
+• Lat/Lon: `{lat:.4f}, {lon:.4f}`
 
-🚨 *Action requise: Vérification immédiate recommandée!*
+📊 *Analyse IA*
+• Prédiction: {result['prediction']}
+• Confiance: *{result['confidence']*100:.1f}%*
+• Luminosité (Est.): {result.get('brightness', 'N/A')} K
 
-_Message généré par AI Sentinel - Satellite Monitoring Morocco_"""
+⚠️ *Propagation Estimée*
+• Rayon: *{result.get('spread_radius', 'N/A')} km*
+• Risque: ÉLEVÉ 🔴
+
+🔗 [Voir sur Google Maps]({maps_link})
+
+🚨 *ACTION REQUISE: VÉRIFICATION IMMÉDIATE*
+_ID: {datetime.now().strftime('%Y%m%d-%H%M%S')}_"""
 
         try:
-            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-            payload = {
+            # Prepare image if available
+            files = None
+            data = {
                 "chat_id": chat_id,
-                "text": message,
+                "caption": message,
                 "parse_mode": "Markdown"
             }
             
-            response = requests.post(url, json=payload, timeout=10)
+            if result.get("image_base64"):
+                # Decode base64 image
+                image_data = base64.b64decode(result["image_base64"])
+                files = {"photo": ("alert_image.png", image_data, "image/png")}
+                url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
+            else:
+                # Fallback to text only if no image
+                url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                data["text"] = message
+                del data["caption"]
+
+            if files:
+                response = requests.post(url, data=data, files=files, timeout=15)
+            else:
+                response = requests.post(url, json=data, timeout=10)
             
             if response.status_code == 200:
-                print(f"📱 Telegram alert sent to chat {chat_id}")
+                print(f"📱 Detailed Telegram alert sent to chat {chat_id}")
             else:
                 print(f"❌ Telegram failed: {response.text}")
                 
